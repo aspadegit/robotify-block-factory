@@ -1,8 +1,17 @@
-# Blockly Sample App
+# Block Factory
 
 ## Purpose
 
-This app illustrates how to use Blockly together with common programming tools like node/npm, webpack, typescript, eslint, and others. You can use it as the starting point for your own application and modify it as much as you'd like. It contains basic infrastructure for running, building, testing, etc. that you can use even if you don't understand how to configure the related tool yet. When your needs outgrow the functionality provided here, you can replace the provided configuration or tool with your own.
+Recreated the Block Factory with additional features.
+A lot of this readme is from the original sample-app this is built off of.
+
+## Cautions & Notes
+
+- Don't drag more than one of the block creator block onto the workspace. It will probably create issues
+- Don't use duplicate names. It will probably create issues. It should give you a warning for this though.
+- The block description that you can enter in the block creator is multi-line and can use the enter key for newlines.
+- Special characters and spaces should be replaced in names, but probably don't try to do it anyways.
+- You shouldn't need to refresh the page for anything, but if something isn't responding, try refreshing. You shouldn't need to save the workspace when refreshing (the browser should keep track of changes), but feel free to if being cautious.
 
 ## Quick Start
 
@@ -37,11 +46,21 @@ You can disable, reconfigure, or replace any of these tools at any time, but the
 ### Source Code
 
 - `index.html` contains the skeleton HTML for the page. This file is modified during the build to import the bundled source code output by webpack.
-- `index.js` is the entry point of the app. It configures Blockly and sets up the page to show the blocks, the generated code, and the output of running the code in JavaScript.
+- `index.js` is the entry point of the app. It configures Blockly and sets up the page to show the blocks and the preview, as well as handling changes (including saving, loading, and buttons). The JS object code (bottom right) is created here.
 - `serialization.js` has code to save and load the workspace using the browser's local storage. This is how your workspace is saved even after refreshing or leaving the page. You could replace this with code that saves the user's data to a cloud database instead.
-- `toolbox.js` contains the toolbox definition for the app. The current toolbox contains nearly every block that Blockly provides out of the box. You probably want to replace this definition with your own toolbox that uses your custom blocks and only includes the default blocks that are relevant to your application.
-- `blocks/text.js` has code for a custom text block, just as an example of creating your own blocks. You probably want to delete this block, and add your own blocks in this directory.
-- `generators/javascript.js` contains the JavaScript generator for the custom text block. You'll need to include block generators for any custom blocks you create, in whatever programming language(s) your application will use.
+- `toolbox.js` contains the toolbox definition for the app. The current toolbox contains the blocks copied over from the original GitHub for block factory (found at https://github.com/google/blockly/blob/master/demos/blockfactory/blocks.js)
+- `blocks/json.js` has the definitions for all of the blocks. Many are pulled from the original GitHub 
+- `generators/javascript.js` contains the JavaScript generator for the all the blocks. Both the interpreter code and the JavaScript code are done per block in here.
+- `generators/json.js` contains the JSON generator for all the blocks. This generates the code in the top left.
+
+### Files Changed
+- `blocks/json.js`
+- `generators/javascript.js`
+- `generators/json.js`
+- `index.css`
+- `index.html`
+- `index.js`
+- `toolbox.js`
 
 ## Serving
 
