@@ -95,7 +95,8 @@ const runCode = () => {
   if(blockCreators.length > 0)
     blockCreator = blockCreators[0];
   
-  blockDescription = blockCreator.getFieldValue("FIELD_DESCRIPTION");
+  if(blockCreator != null)
+    blockDescription = blockCreator.getFieldValue("FIELD_DESCRIPTION");
   descriptionInput.innerText = blockDescription;
 
   //check for changes in the code to update the preview
