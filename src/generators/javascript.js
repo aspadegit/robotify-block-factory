@@ -84,13 +84,13 @@ init${blockType}(interpreter, globalObject);\n
     let nextBlock = block.getChildren(false)[0];
     while(nextBlock != null)
     {
+      code += javascriptGenerator.blockToCode(nextBlock,true);
+
       //make the indent nonexistent (statementToCode auto indents)
       javascriptGenerator.INDENT = "";
       let nestedStatements = javascriptGenerator.statementToCode(nextBlock, 'FIELDS');        
       if(nestedStatements != "")
           code += nestedStatements;
-
-      code += javascriptGenerator.blockToCode(nextBlock,true);
 
       //continue down the line
       nextBlock = nextBlock.getNextBlock();
