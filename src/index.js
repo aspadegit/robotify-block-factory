@@ -31,6 +31,19 @@ const outputBlockDiv = document.getElementById('preview');
 const blocklyDiv = document.getElementById('blocklyDiv');
 const descriptionInput = document.getElementById('descriptionInput').firstChild;
 const jsObject = document.getElementById('jsObject').firstChild;
+
+const defaultWorkspace = `<xml xmlns="https://developers.google.com/blockly/xml">
+<block type="block_creator" id="UY{Q#%f/,67FdyTTGx)P" x="55" y="77">
+  <field name="BLOCK_NAME">newBlock</field>
+  <field name="BLOCK_CATEGORY">CATEGORY_MOVEMENT</field>
+  <field name="DROPDOWN_INPUT">OPTION_AUTO</field>
+  <field name="DROPDOWN_CONNECTIONS">OPTION_CONNECTIONS_NONE</field>
+  <field name="FIELD_TOOLTIP"></field>
+  <field name="FIELD_HELP"></field>
+  <field name="FIELD_DESCRIPTION"></field>
+</block>
+</xml>`;
+
 const ws = Blockly.inject(blocklyDiv, {toolbox});
 const ws2 = Blockly.inject(outputBlockDiv, {scrollbars:true});  //preview workspace
 
@@ -72,6 +85,22 @@ window.onload = function() {
 // generated code from the workspace, and evals the code.
 // In a real application, you probably shouldn't use `eval`.
 const runCode = () => {
+
+  //creates the block factory block when first starting
+  //also, keeps it from being deleted
+  if(ws.getAllBlocks(false).length < 1)
+  {
+    let dom = Blockly.Xml.textToDom(defaultWorkspace);
+    Blockly.Xml.domToWorkspace(dom, ws);
+
+    setBlockCreator();
+
+    location.reload();
+
+  }
+
+  setBlockCreator();
+
   const code = jsonGenerator.workspaceToCode(ws);
   const javascriptCode = javascriptGenerator.workspaceToCode(ws);
 
@@ -89,11 +118,6 @@ const runCode = () => {
   outputDiv.innerHTML = jsCode;
 
   jsObject.innerText = JSON.stringify(generateJavascriptObj(code, interpreterCode, jsCode),null,'  ');
-
-  //ensures it's either the block creator or null
-  let blockCreators =  ws.getBlocksByType("block_creator", false);
-  if(blockCreators.length > 0)
-    blockCreator = blockCreators[0];
   
   if(blockCreator != null)
     blockDescription = blockCreator.getFieldValue("FIELD_DESCRIPTION");
@@ -229,6 +253,16 @@ function generateJavascriptObj(json, interpreter, js) {
 
   //if blockCreator is null then we have nothing to do
   return "";
+}
+
+//sets the global variable
+function setBlockCreator()
+{
+  let blockCreators =  ws.getBlocksByType("block_creator", false);
+  if(blockCreators.length > 0)
+    blockCreator = blockCreators[0];
+
+  blockCreator.setDeletable(false);
 }
 
 //convert the workspace to XML and save the file to downloads

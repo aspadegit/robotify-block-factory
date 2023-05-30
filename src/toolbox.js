@@ -6,16 +6,6 @@
 export const toolbox = {
   'kind': 'categoryToolbox',
   'contents': [
-    { 
-      'kind': 'category',
-      'name': 'Creator',
-      'contents': [
-        {
-          'kind': 'block',
-          'type': 'block_creator'
-        }
-      ]
-    },
     {
       'kind': 'category',
       'name': 'Input',
