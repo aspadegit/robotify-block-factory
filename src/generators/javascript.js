@@ -1,4 +1,10 @@
 /**
+ * This file is for generating the code for the interpreter and for the JavaScript
+ * Each generator[blockType] function generates the code for that block
+ * generator['block_creator'] ties it all together, so the bulk of the code is in there
+ */
+
+/**
  * @license
  * Copyright 2023 Google LLC
  * SPDX-License-Identifier: Apache-2.0
@@ -6,35 +12,10 @@
 
 import {javascriptGenerator} from 'blockly/javascript';
 
-// Export all the code generators for our custom blocks,
-// but don't register them with Blockly yet.
-// This file has no side effects!
 export const generator = Object.create(null);
-const regex = /[^a-zA-Z0-9_]+/g;
-//export const jsGenerator = new Blockly.Generator('js');
+const regex = /[^a-zA-Z0-9_]+/g;  //removes special characters & spaces
 
-generator['add_text'] = function(block) {
-  const text = javascriptGenerator.valueToCode(block, 'TEXT',
-      javascriptGenerator.ORDER_NONE) || '\'\'';
-  const color = javascriptGenerator.valueToCode(block, 'COLOR',
-      javascriptGenerator.ORDER_ATOMIC) || '\'#ffffff\'';
-
-  const addText = javascriptGenerator.provideFunction_(
-      'addText',
-      ['function ' + javascriptGenerator.FUNCTION_NAME_PLACEHOLDER_ +
-          '(text, color) {',
-      '  // Add text to the output area.',
-      '  const outputDiv = document.getElementById(\'output\');',
-      '  const textEl = document.createElement(\'p\');',
-      '  textEl.innerText = text;',
-      '  textEl.style.color = color;',
-      '  outputDiv.appendChild(textEl);',
-      '}']);
-    // Generate the function call for this block.
-  const code = `${addText}(${text}, ${color});\n`;
-  return code;
-};
-
+//Coordinates the code for all of the blocks inside of it
 generator['block_creator'] = function(block) {
   
   let code = "";
@@ -45,11 +26,12 @@ generator['block_creator'] = function(block) {
 
   //get every name in the workspace
   var allBlocks = block.workspace.getAllBlocks(false);
+  //this is the list of the parameters located in the interpeter code
   for(let i = 0; i < allBlocks.length; i++)
   {
     let param = allBlocks[i].getFieldValue("FIELDNAME");
 
-    //try and see if it's an input if it's null
+    //try and see if it's an input, if that input is null
     if(param === null)
       param = allBlocks[i].getFieldValue("INPUTNAME");
 
@@ -79,6 +61,7 @@ init${blockType}(interpreter, globalObject);\n
 `
 
   //this is the same as in generators/json.js (with some simplifications)
+  //generates the code in the JavaScript section
   if(block.getChildren(false).length > 0)
   {
     let nextBlock = block.getChildren(false)[0];
@@ -100,8 +83,8 @@ init${blockType}(interpreter, globalObject);\n
     javascriptGenerator.INDENT = "  ";
   }
 
-  // get the variable names 
-  // probably not efficient at all
+  // get the variable names by splitting the string of the JS code
+  // probably not efficient or good practice
   let splitByVar = code.split("var ");
   let variableNames = [];
   for(let i = 1; i < splitByVar.length; i++)
@@ -111,19 +94,20 @@ init${blockType}(interpreter, globalObject);\n
   }
  
   code += `var code = '${blockType}(${variableNames.toString()})`;
-  //for anything WITHOUT left output type
 
   //for left output type
-  let leftOutputEndCode = "';\nreturn [code, Blockly.JavaScript.ORDER_NONE];\n"
-
   if(block.getFieldValue("DROPDOWN_CONNECTIONS") === "OPTION_CONNECTIONS_LEFT")
-  {
+  { 
+    let leftOutputEndCode = "';\nreturn [code, Blockly.JavaScript.ORDER_NONE];\n"
     return interpreterDeclaration + delimiter + code + leftOutputEndCode;
   }
 
+  //for anything that isn't the left output type
   return interpreterDeclaration + delimiter  + code + `;\\n';` + "\nreturn code;";
 
 }
+
+//======== the rest of the code is for each individual block. it creates the var ... = ... in the JS code =============
 
 generator['text_input'] = function(block) {
   if(!shouldOutputCode(block)) return null;
@@ -136,11 +120,7 @@ generator['text_input'] = function(block) {
 }
 
 //labels aren't relevant to function of the block
-generator['text_label'] = function(block) {
-
-  return "";
-
-}
+generator['text_label'] = function(block) {  return ""; }
 
 generator['dummy_input'] = function(block) { return ""; }
 
@@ -230,6 +210,7 @@ generator['input_statement'] = function(block) {
 
 }
 
+//none of the type requirements return any JS/interpreter code
 generator['type_group'] = function(block) { return "";}
 generator['type_null'] = function(block) { return "";}
 generator['type_boolean'] = function(block) { return "";}
@@ -238,6 +219,8 @@ generator['type_string'] = function(block) { return "";}
 generator['type_list'] = function(block) { return "";}
 generator['type_other'] = function(block) { return "";}
 
+//for when a block is not inside the block creator (should not output code unless it is in the block creator)
+//same as in JSON generator
 function shouldOutputCode(block)
 {
     let surroundParent = block.getSurroundParent();
@@ -251,7 +234,7 @@ function shouldOutputCode(block)
     if(surroundParent != null)
         return true;
     
-    //surroundParent is null -> it's not connected -> should not output JSON
+    //surroundParent is null -> it's not connected -> should not output code
     return false;
 
 }

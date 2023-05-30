@@ -1,7 +1,10 @@
-import * as Blockly from 'blockly';
+/**
+ * This file is for generating the code for the block definition JSON
+ * Each generator[blockType] function generates the code for that block
+ * generator['block_creator'] ties it all together, so the bulk of the code is in there
+ */
 
-//TODO: (all) auto replace spaces with underscores
-//TODO: remove blocks in the "other" tab from the toolbox
+import * as Blockly from 'blockly';
 
 export const jsonGenerator = new Blockly.Generator('JSON');
 export var previewBlockType = "";
@@ -10,97 +13,6 @@ const regex = /[^a-zA-Z0-9_]+/g;
 
 //json doesn't allow expressions, so precedence is all 0
 jsonGenerator.PRECEDENCE = 0;
-
-//the null block
-jsonGenerator['logic_null'] = function(block) {
-    //always returns null; string because JSON uses strings
-    return ['null', jsonGenerator.PRECEDENCE];
-};
-
-//the text block
-jsonGenerator['text'] = function(block) {
-
-    //get the text inside of the block
-    const textValue = block.getFieldValue('TEXT');
-    //wrap the value in additional quotation marks
-        //because it is a string in the JSON code
-    const code = `"${textValue}"`;
-
-    //return the text inside of the block
-    return [code, jsonGenerator.PRECEDENCE];
-};
-
-//number block
-jsonGenerator['math_number'] = function(block) {
-    //convert the number to a string for JSON
-    const code = String(block.getFieldValue('NUM'));
-    return [code, jsonGenerator.PRECEDENCE];
-};
-
-//bool block
-jsonGenerator['logic_boolean'] = function(block) {
-    
-    //code is 'true' if true, 'false' if false
-    const code = (block.getFieldValue('BOOL') === 'TRUE') ? 'true' : 'false';
-    return [code, jsonGenerator.PRECEDENCE];
-
-};
-
-//member generator
-jsonGenerator['member'] = function(block) {
-    const name = block.getFieldValue('MEMBER_NAME');
-
-    //finds the block attached to "MEMBER_VALUE", and turns it to code
-    const value = jsonGenerator.valueToCode(
-        block, 'MEMBER_VALUE', jsonGenerator.PRECEDENCE); 
-
-    const code = `"${name}": ${value}`;
-
-    return code;
-};
-
-//array block
-jsonGenerator['lists_create_with'] = function(block) {
-
-    //get the values from the block into an array
-    const values = [];
-    for(let i = 0; i < block.itemCount_; i++) {
-
-        //the values in the blocks will be ADD0, ADD1...
-        const valueCode = jsonGenerator.valueToCode(block, 'ADD'+i,
-            jsonGenerator.PRECEDENCE);
-        
-        //avoids null values (only push if exists)
-        if(valueCode) {
-            values.push(valueCode);
-        }
-    }
-
-    //values is currently an array of strings
-    //  join values into a SINGLE string (with , & newline between each)
-    const valueString = values.join(',\n');
-
-    //add indentation to each line
-    //  INDENT defaults to 2 spaces
-    const indentedValueString = 
-        jsonGenerator.prefixLines(valueString, jsonGenerator.INDENT);
-
-    //wrap in brackets
-    const codeString = '[\n' + indentedValueString + '\n]';
-    return [codeString, jsonGenerator.PRECEDENCE];
-
-};
-
-//object block generator
-jsonGenerator['object'] = function(block) {
-
-    //statementToCode auto indents
-    const statement_members = 
-        jsonGenerator.statementToCode(block, 'MEMBERS');
-
-    const code = '{\n' + statement_members + '\n}';
-    return [code, jsonGenerator.PRECEDENCE];
-};
 
 //override the .scrub_ function to handle stacks of blocks
 //  thisOnly generates code for ONLY this block & no subsequent blocks when true
@@ -116,40 +28,47 @@ jsonGenerator.scrub_ = function(block, code, thisOnly) {
     return code;
 };
 
+// handles & organizes all of the code of the individual blocks
 jsonGenerator['block_creator'] = function(block) {
 
     let blockName = block.getFieldValue("BLOCK_NAME").toLowerCase();
     blockName = blockName.replace(regex, "_");
     previewBlockType = blockName;
     let args = `"args0": [\n`;
-    let argsCount = 1;
-    let decreaseArgs = 0;
+    let argsCount = 1;  //i forget why it's one. i think it's for an empty input case
+    let decreaseArgs = 0;   //argsCount is based on a list length, but some things don't add to the args, so the amount to decrease is here
+    
+    //probably could/should have increased args as i went instead of starting them at a value & decreasing
+        //but i ran into issues a long time ago, and so it ended up weird like this (sorry)
 
+    // if the block creator is not empty
     if(block.getChildren(false).length > 0)
     {
         let firstChild = block.getChildren(false)[0];
         let nestedStatements = jsonGenerator.statementToCode(firstChild, 'FIELDS');
         let nextBlock = firstChild.getNextBlock();
 
-        //add the nested statements first
+        //add the nested statements first (will be "" if there are no nested statements in the input)
         if(nestedStatements != "")
         {
             args += nestedStatements;
             args += ",\n"
         }
 
-        //dummy input is only added if there is a block below it
+        //dummy input is only added to the JSON if there is a block below it
         let isDummy = isDummyBlock(firstChild);
         let writeDummyJson = isDummy && nextBlock != null;
 
         if(writeDummyJson || !isDummy)
         {
+            //print the block to the JSON
             args += jsonGenerator.prefixLines(jsonGenerator.blockToCode(firstChild,true), "  ");
             decreaseArgs += checkOutputToDecreaseArgs(firstChild);
             args += ",\n";
         }
 
         //adjust args to be deleted if it's ending on a dummy
+            //since the dummy isn't added to the JSON if it doesn't have a next block
         if(isDummy && nextBlock === null)
         {
             decreaseArgs++;
@@ -161,13 +80,13 @@ jsonGenerator['block_creator'] = function(block) {
 
         while(nextBlock != null)
         {
-            //its nested statements
+            //the input's nested statements
             let nestedStatements = jsonGenerator.statementToCode(nextBlock, 'FIELDS');        
             if(nestedStatements != "")
                 args += nestedStatements +  ",\n" ;
             
            
-            //input statement
+            //input statement (like dummy, value, or statement)
             args += jsonGenerator.prefixLines(jsonGenerator.blockToCode(nextBlock,true), "  ");
             decreaseArgs += checkOutputToDecreaseArgs(nextBlock);
             args += ",\n";
@@ -178,6 +97,7 @@ jsonGenerator['block_creator'] = function(block) {
             nextBlock = nextBlock.getNextBlock();
         }
 
+        //cut off the ending comma + newline (,\n)
         args = args.substring(0, args.length-2);
         args += "\n],\n";
 
@@ -192,10 +112,9 @@ jsonGenerator['block_creator'] = function(block) {
     
 
     argsCount = block.getDescendants(false).length - 1;
-
     argsCount = argsCount - decreaseArgs;
 
-    //message
+    //message (shows the args from argsCount)
     let message = ""; 
     if(argsCount > 0)
     {
@@ -221,9 +140,13 @@ jsonGenerator['block_creator'] = function(block) {
     const connection = block.getFieldValue("DROPDOWN_CONNECTIONS");
     let connectionString = connectionToString(connection);
 
+    //tooltip and helpurl are just strings
     const tooltip = `  "tooltip": "` + block.getFieldValue("FIELD_TOOLTIP") + `", \n`;
     const helpUrl = `  "helpUrl": "` + block.getFieldValue("FIELD_HELP") + `"`;
 
+    //description is handled in index.js
+
+    //put it all together
     const code =
         '{\n' + 
         `  "type": "${blockName}",` + '\n' +
@@ -240,6 +163,8 @@ jsonGenerator['block_creator'] = function(block) {
     
 };
 
+//============ The rest of this is individual blocks that block_creator uses to generate code ===================
+
 jsonGenerator['dummy_input'] = function(block){
     if(!shouldOutputCode(block)) return null;
 
@@ -253,6 +178,7 @@ jsonGenerator['dummy_input'] = function(block){
     return `{\n  "type": "input_dummy"${align}\n}`;
 };
 
+//text that the user can input on the final block
 jsonGenerator['text_input'] = function (block){
     if(!shouldOutputCode(block)) return null;
 
@@ -271,15 +197,18 @@ jsonGenerator['text_input'] = function (block){
     return "{\n" + type + name + text + "}"
 };
 
+//text that shows as a label (that the user can't edit on the final block)
 jsonGenerator['text_label'] = function(block) {
     if(!shouldOutputCode(block)) return null;
 
     const type = `  "type": "field_label",\n`;
 
+    //what distinguishes it from other fields
     let name = block.getFieldValue("FIELDNAME");
     name = name.replace(regex, "_");
     name = `  "name": "${name}", \n`;
 
+    //what the label text says
     let text = block.getFieldValue("TEXT");
     text = `  "text": "${text}"\n`;
 
@@ -287,6 +216,7 @@ jsonGenerator['text_label'] = function(block) {
 
 };
 
+//field_numeric is a more accurate name 
 jsonGenerator['numeric_input'] = function(block) {
     if(!shouldOutputCode(block)) return null;
 
@@ -316,15 +246,18 @@ jsonGenerator['numeric_input'] = function(block) {
 
 };
 
+//field_angle is a more accurate name 
 jsonGenerator['angle_input'] = function(block) {
     if(!shouldOutputCode(block)) return null;
 
     const type = `  "type": "field_angle",\n`;
 
+    //what distinguishes it from other fields
     let name = block.getFieldValue("FIELDNAME");
     name = name.replace(regex, "_");
     name = `  "name": "${name}",\n`;
 
+    //what default angle is shown
     let angle = block.getFieldValue("ANGLE");
     angle = `  "angle": ${angle}\n`;
 
@@ -344,6 +277,7 @@ jsonGenerator['field_dropdown'] = function(block) {
 
     const type = `  "type": "field_dropdown",\n`;
 
+    //what distinguishes it from other fields
     let name = block.getFieldValue("FIELDNAME");
     name = name.replace(regex, "_");
     name = `  "name": "${name}",\n`;
@@ -392,10 +326,12 @@ jsonGenerator['field_checkbox'] = function(block) {
 
     const type = `  "type": "field_checkbox",\n`;
 
+    //what distinguishes it from other fields
     let name = block.getFieldValue("FIELDNAME");
     name = name.replace(regex, "_");
     name = `  "name": "${name}",\n`;
 
+    //whether it is checked or unchecked by default
     let checked = block.getFieldValue("CHECKED");
     checked = checked.toLowerCase();
     checked = `  "checked": ${checked}\n`;
@@ -409,10 +345,12 @@ jsonGenerator['field_colour'] = function(block) {
 
     const type = `  "type": "field_colour",\n`;
 
+    //what distinguishes it from other fields
     let name = block.getFieldValue("FIELDNAME");
     name = name.replace(regex, "_");
     name = `  "name": "${name}",\n`;
 
+    //what colour it is by default
     let colour = block.getFieldValue("COLOUR");
     colour = `  "colour": "${colour}"\n`;
 
@@ -425,10 +363,12 @@ jsonGenerator['field_variable'] = function(block) {
 
     const type = `  "type": "field_variable",\n`;
 
+    //what distinguishes it from other fields
     let name = block.getFieldValue("FIELDNAME");
     name = name.replace(regex, "_");
     name = `  "name": "${name}",\n`;
 
+    //what the default variable name is
     let variable = block.getFieldValue("TEXT");
     variable = `  "variable": "${variable}"\n`;
 
@@ -441,6 +381,7 @@ jsonGenerator['field_image'] = function(block) {
 
     const type = `  "type": "field_image",\n`;
 
+    // the following are all default settings of the image
     let src = block.getFieldValue("SRC");
     src = `  "src": "${src}",\n`;
 
@@ -450,6 +391,7 @@ jsonGenerator['field_image'] = function(block) {
     let height = block.getFieldValue("HEIGHT");
     height = `  "height": ${height},\n`;
 
+    //alt text of the image
     let alt = block.getFieldValue("ALT");
     alt = `  "alt": "${alt}",\n`;
 
@@ -470,7 +412,7 @@ jsonGenerator['input_value'] = function(block) {
     name = name.replace(regex, "_");
     name = `  "name": "${name}"`;
 
-    //type block (if there's an easier way, i don't know it)    
+    //type block (if there's an easier way to access it, i don't know it)    
     let typeConnection = block.getInput("TYPE").connection.targetConnection;
     let allowedType = "\n";
 
@@ -521,6 +463,7 @@ jsonGenerator['input_statement'] = function(block) {
 
 };
 
+//multiple types
 jsonGenerator['type_group'] = function(block) {
     if(!shouldOutputCode(block)) return null;
 
@@ -551,6 +494,7 @@ jsonGenerator['type_group'] = function(block) {
 
 };
 
+//any type
 jsonGenerator['type_null'] = function(block) {
     return "";
 };
@@ -579,6 +523,7 @@ jsonGenerator['type_list'] = function(block) {
     return `"Array"`;
 };
 
+//user-inputted type
 jsonGenerator['type_other'] = function(block) {
 
     if(!shouldOutputCode(block)) return null;
@@ -590,10 +535,6 @@ jsonGenerator['type_other'] = function(block) {
 
     return `"${customType}"`;
 };
-
-
-//TODO: temporary, remove later
-//jsonGenerator[previewBlockType] = function(block) {    return "";};
 
 //category is a string based on the Robotify categories that determines the colour of the resulting block 
 function categoryToColour(category)
@@ -659,20 +600,22 @@ function connectionToString(connection)
     return "";
 }
 
-//when counting args, decrease for every type block you find
+//when counting args, decrease for every type block you find (for the message0: %1 %2....)
 function checkOutputToDecreaseArgs(block)
 {
     let decreaseArgs = 0;
 
-    if(block.type.includes("dummy"))
+    if(block.type.includes("dummy_input"))
         return 0;
 
+    //type blocks don't add to the message list of args (ex: type boolean, type any, etc.)
+        //accessing them is weird (but this works)
     let typeConnect = block.getInput("TYPE").connection.targetConnection;
     if(typeConnect != null)
     {
         decreaseArgs++;
 
-        //more connections to delete
+        //more connections to delete (type_group can have a list of types it accepts)
         if(typeConnect.sourceBlock_.type === "type_group")
         {
             for(let i = 0; i < typeConnect.sourceBlock_.typeCount_; i++)

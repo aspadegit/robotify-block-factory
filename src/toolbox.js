@@ -1,42 +1,18 @@
+/**
+ * The toolbox contains all the blocks from blocks/json.js (tells Blockly what to include)
+ * Changed to a category toolbox from a flyout toolbox for ease of use
+ */
+
 export const toolbox = {
   'kind': 'categoryToolbox',
   'contents': [
     { 
       'kind': 'category',
-      'name': 'other',
+      'name': 'Creator',
       'contents': [
         {
           'kind': 'block',
-          'type': 'object'
-        },
-        {
-          'kind': 'block',
           'type': 'block_creator'
-        },
-
-        {
-          'kind': 'block',
-          'type': 'member'
-        },
-        {
-          'kind': 'block',
-          'type': 'math_number'
-        },
-        {
-          'kind': 'block',
-          'type': 'text'
-        },
-        {
-          'kind': 'block',
-          'type': 'logic_boolean'
-        },
-        {
-          'kind': 'block',
-          'type': 'logic_null'
-        },
-        {
-          'kind': 'block',
-          'type': 'lists_create_with'
         }
       ]
     },
@@ -97,10 +73,6 @@ export const toolbox = {
         {
           'kind': 'block',
           'type': 'field_image'
-        },
-        {
-          'kind': 'block',
-          'type': 'newblock'
         }
       ]
     },

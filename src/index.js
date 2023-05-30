@@ -1,4 +1,10 @@
 /**
+ * This connects the generator code to index.html
+ * It also handles block descriptions, some input changes, loading & saving, the preview block, and 
+ *    generating the JS object.
+ */
+
+/**
  * @license
  * Copyright 2023 Google LLC
  * SPDX-License-Identifier: Apache-2.0
@@ -25,8 +31,9 @@ const outputBlockDiv = document.getElementById('preview');
 const blocklyDiv = document.getElementById('blocklyDiv');
 const descriptionInput = document.getElementById('descriptionInput').firstChild;
 const jsObject = document.getElementById('jsObject').firstChild;
-
 const ws = Blockly.inject(blocklyDiv, {toolbox});
+const ws2 = Blockly.inject(outputBlockDiv, {scrollbars:true});  //preview workspace
+
 const regex = /[^a-zA-Z0-9_]+/g;
 
 var tempJsonCode = "";
@@ -34,7 +41,6 @@ var previewBlock = null;
 var prevBlockXY = null;
 var blockDescription = "";
 var blockCreator = null;
-const ws2 = Blockly.inject(outputBlockDiv, {scrollbars:true});
 
 var jsonCode = "";
 var jsCode = "";
@@ -69,9 +75,13 @@ const runCode = () => {
   const code = jsonGenerator.workspaceToCode(ws);
   const javascriptCode = javascriptGenerator.workspaceToCode(ws);
 
+  //json code
   codeDiv.innerText = code;
-
   jsonCode = code;
+
+  //split the interpreter code & js code (they are both handled in the javascript code)
+    //the !DELIMITER! value is hardcoded in generators/javascript.js
+    //shouldn't conflict with user values since JS code uses names, and those filter out special characters
   interpreterCode = javascriptCode.split("!DELIMITER!")[0];
   jsCode = javascriptCode.split("!DELIMITER!")[1];
 
@@ -87,11 +97,14 @@ const runCode = () => {
   
   blockDescription = blockCreator.getFieldValue("FIELD_DESCRIPTION");
   descriptionInput.innerText = blockDescription;
-  //check for changes
+
+  //check for changes in the code to update the preview
   if(code != tempJsonCode)
   {
 
+    //clear the preview workspace and replace it with a new block
     ws2.clear();
+
     //gets the name by splitting with quotation marks
     let newBlockType = code.split("\"")[3];
 
@@ -113,6 +126,7 @@ const runCode = () => {
     else
       previewBlock.moveBy(30, 30);
 
+    //set up the new preview block
     previewBlock.initSvg();
     previewBlock.render();
     tempJsonCode = code;
@@ -144,20 +158,21 @@ ws.addChangeListener((e) => {
     return;
   }
 
+  //check for changes to update the description code
   if(e.type == Blockly.Events.BLOCK_CHANGE)
   {
     if(e.name == "FIELD_DESCRIPTION")
     {
       blockDescription = e.newValue;
-      //descriptionInput.innerHTML = blockDescription;
     }
   }
   runCode();
 });
 
-//check if the user moves the block
+//check if the user moves the block in the preview section
 ws2.addChangeListener((e) => {
 
+  //update the coordinates so that when the block is replaced its in the right spot
   if(e.type == Blockly.Events.BLOCK_MOVE )
   {
     prevBlockXY = e.newCoordinate;
@@ -166,7 +181,6 @@ ws2.addChangeListener((e) => {
   runCode();
 });
 
-
 //for loading from a file
 const fileSelector = document.getElementById('loadWorkspace');
 fileSelector.addEventListener('change', (event) => {
@@ -174,10 +188,12 @@ fileSelector.addEventListener('change', (event) => {
   //get the files that were loaded
   const fileList = event.target.files;
   
-  
+  //reads the content of the file the user loaded
   var reader = new FileReader();
   reader.readAsText(fileList[0], "UTF-8");
   reader.onload = function (e) {
+
+    //clear the workspace and replace it with the loaded workspace
     ws.clear();
     var newXml = Blockly.Xml.textToDom(e.target.result);
     Blockly.Xml.domToWorkspace(newXml, ws);
@@ -185,6 +201,7 @@ fileSelector.addEventListener('change', (event) => {
     //reset the fileSelector
     fileSelector.value = "";
 
+    //reload the page to update the stubborn HTML elements that don't update automatically
     location.reload();
   }
 
@@ -209,14 +226,12 @@ function generateJavascriptObj(json, interpreter, js) {
     return block;
   }
 
-
-
   //if blockCreator is null then we have nothing to do
   return "";
 }
 
+//convert the workspace to XML and save the file to downloads
 function saveWorkspace() {
-  //convert the workspace to XML and save the file to downloads
   var xmlDom = Blockly.Xml.workspaceToDom(ws);
   var xmlText = Blockly.Xml.domToPrettyText(xmlDom);
   let blob = new Blob([xmlText], {type: 'text/plain'});
@@ -226,6 +241,7 @@ function saveWorkspace() {
   link.href = URL.createObjectURL(blob);
 }
 
+//for the buttons that copy the code in the divs
 function copyText(id){
   let text = document.getElementById(id).innerText;
   navigator.clipboard.writeText(text);

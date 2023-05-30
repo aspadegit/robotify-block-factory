@@ -1,80 +1,13 @@
+/**
+ * This file is the JSON & JavaScript descriptions for each of the blocks
+ * Pretty much all of it is from the Google GitHub
+ * The name checking functions are in here too
+ */
+
 import * as Blockly from 'blockly';
 
-export const blocks = Blockly.common.createBlockDefinitionsFromJsonArray([{
-  "type": "object",
-  "message0": "{ %1 %2 }",
-  "args0": [
-    {
-      "type": "input_dummy"
-    },
-    {
-      "type": "input_statement",
-      "name": "MEMBERS"
-    }
-  ],
-  "output": null,
-  "colour": 230,
-},
-
-//newblock (copy and paste from what's created on the sample app)
-{
-  "type": "newblock",
-  "message0": "%1 %2 %3 %4 %5 %6",
-  "args0": [
-    {
-      "type": "input_value",
-      "name": "name_To_Check",
-      "align": "RIGHT"
-
-    },
-    {
-      "type": "field_label",
-      "name": "NAME",
-      "text": "dsfdf"
-    },
-    {
-      "type": "field_image",
-      "src": "https://www.gstatic.com/codesite/ph/images/star_on.gif",
-      "width": 15,
-      "height": 15,
-      "alt": "*",
-      "flipRtl": false
-    },
-    {
-      "type": "input_dummy",
-      "align": "RIGHT"
-    },
-    {
-      "type": "field_dropdown",
-      "name": "NAME",
-      "options": [
-        [
-          {
-            "src": "https://www.gstatic.com/codesite/ph/images/star_on.gif",
-            "width": 15,
-            "height": 15,
-            "alt": "*",
-          },
-          "OPTIONNAME"
-        ],
-        [
-          "option",
-          "nbnbbcbvc"
-        ]
-      ]
-    },
-    {
-      "type": "input_statement",
-      "name": "NAME",
-      "align": "RIGHT",
-      "check": "Boolean"
-    }
-  ],
-  "previousStatement": null,
-  "colour": "#FFA800",
-  "tooltip": "this is a tooltip",
-  "helpUrl": "helpurl"
-},
+//only contains the block creator
+export const blocks = Blockly.common.createBlockDefinitionsFromJsonArray([
 
 //block creator
 {
@@ -207,35 +140,10 @@ export const blocks = Blockly.common.createBlockDefinitionsFromJsonArray([{
   "colour": 120,
   "tooltip": "",
   "helpUrl": ""
-},
-
-//member
-{
-  "type": "member",
-  "message0": "%1 %2 %3",
-  "args0": [
-    {
-      "type": "field_input",
-      "name": "MEMBER_NAME",
-      "text": ""
-    },
-    {
-      "type": "field_label",
-      "name": "COLON",
-      "text": ":"
-    },
-    {
-      "type": "input_value",
-      "name": "MEMBER_VALUE"
-    }
-  ],
-  "previousStatement": null,
-  "nextStatement": null,
-  "colour": 230,
 }]);
 
 
-//from https://github.com/google/blockly/blob/master/demos/blockfactory/blocks.js ===============================
+//all the rest from https://github.com/google/blockly/blob/master/demos/blockfactory/blocks.js ===============================
 
 var FIELD_MESSAGE = 'fields %1 %2';
 var FIELD_ARGS = [
