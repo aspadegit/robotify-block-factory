@@ -7,16 +7,20 @@
 
  <html>
    <head>
-     <meta charset="utf-8" />
-     <title>Blockly Sample App</title>
-     <script type="javascript" src="./index.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@200;300;400;500&family=Pathway+Gothic+One&display=swap" rel="stylesheet">
+    <meta charset="utf-8" />
+    <title>Blockly Sample App</title>
+    <script type="javascript" src="./index.js"></script>
 
    </head>
    <body>
     <div id="pageContainer">
-      <div id="outputPane" class="box">
-        
-        <h4>JSON <button id="generatedCodeBtn">Copy JSON Text</button></h4>
+      <div id="outputPane" class="box resizable">
+        <div class = "resizer resizer-r"></div>
+
+        <h4>JSON <button id="generatedCodeBtn" class="btn btn-inline">Copy JSON Text</button></h4>
         <pre id="generatedCode"><code></code></pre>
         <hr>
         <h4>Preview</h4>
@@ -24,34 +28,37 @@
         <hr>
         <h4>Save Workspace</h4>
         <a id="saveLink" href="#" download="test.json">
-          <button id="saveButton">Save Workspace</button>
+          <button id="saveButton" class="btn">Save Workspace</button>
         </a>
         <br><hr>
         <h4>Load Workspace</h4>
-          <input id="loadWorkspace" type="file">
+        <label for="loadWorkspace" class ="btn">Load Workspace</label>
+          <input id="loadWorkspace" style="display:none"type="file">
 
       </div>
 
 
-      <div id="columnTwo" class="box">        
-        <h4>JavaScript <button id = "jsBtn">Copy JS Text</button></h4>
+      <div id="columnTwo" class="box resizable">        
+        <div class = "resizer resizer-r"></div>
+
+        <h4>JavaScript <button id = "jsBtn" class="btn btn-inline">Copy JS Text</button></h4>
         <div id="javascript"><pre><code></code></pre></div>
         <hr>
 
-        <h4>Interpreter <button id = "interpreterBtn">Copy Interpreter Text</button></h4>
+        <h4>Interpreter <button id = "interpreterBtn" class="btn btn-inline">Copy Interpreter Text</button></h4>
         <div id="interpreter"><pre><code></code></pre></div>
         <hr>
 
-        <h4>Description <button id = "descBtn">Copy Description Text</button></h4>
+        <h4>Description <button id = "descBtn" class="btn btn-inline">Copy Description Text</button></h4>
         <div><pre id="descriptionInput"><code></code></pre>
         </div>
         <hr>
 
-        <h4>JS Object <button id = "jsObjBtn">Copy JS Object Text</button></h4>
+        <h4>JS Object <button id = "jsObjBtn" class="btn btn-inline">Copy JS Object Text</button></h4>
         <pre id="jsObject"><code></code></pre>
       </div>
 
-      <div id="blocklyDiv"></div>
+      <section id="blocklyContainer"><div id="blocklyDiv"></div></section>
     </div>
 
 

@@ -29,9 +29,24 @@ const outputDiv = document.getElementById('javascript').firstChild.firstChild;
 const interpreterDiv = document.getElementById('interpreter').firstChild.firstChild;
 const outputBlockDiv = document.getElementById('preview');
 const blocklyDiv = document.getElementById('blocklyDiv');
+const blocklyContainer = document.getElementById('blocklyContainer');
 const descriptionInput = document.getElementById('descriptionInput').firstChild;
 const jsObject = document.getElementById('jsObject').firstChild;
 
+//for resizing the screen
+const leftPane = document.getElementById('outputPane');
+const midPane = document.getElementById('columnTwo');
+const rightPane = blocklyDiv;
+
+let mouseCoord = {x: 0, y: 0};
+let elementWidth = 0;
+let currentElement = leftPane;
+
+let leftPaneWidth = 0;
+let midPaneWidth = 0;
+let rightPaneWidth = 0;
+
+ //puts one block creator down by default
 const defaultWorkspace = `<xml xmlns="https://developers.google.com/blockly/xml">
 <block type="block_creator" id="UY{Q#%f/,67FdyTTGx)P" x="55" y="77">
   <field name="BLOCK_NAME">newBlock</field>
@@ -44,7 +59,7 @@ const defaultWorkspace = `<xml xmlns="https://developers.google.com/blockly/xml"
 </block>
 </xml>`;
 
-const ws = Blockly.inject(blocklyDiv, {toolbox});
+const ws = Blockly.inject(blocklyDiv, {toolbox});               //regular workspace
 const ws2 = Blockly.inject(outputBlockDiv, {scrollbars:true});  //preview workspace
 
 const regex = /[^a-zA-Z0-9_]+/g;
@@ -165,6 +180,8 @@ const runCode = () => {
 load(ws);
 runCode();
 
+// ========================= event listeners ====================================
+
 // Every time the workspace changes state, save the changes to storage.
 ws.addChangeListener((e) => {
   // UI events are things like scrolling, zooming, etc.
@@ -231,6 +248,47 @@ fileSelector.addEventListener('change', (event) => {
   }
 
 });
+
+
+//resizing elements based on: https://htmldom.dev/make-a-resizable-element/
+const mouseDownHandler = function (e) {
+  
+  //set mouse position
+  mouseCoord.x = e.clientX;
+  mouseCoord.y = e.clientY;
+
+  currentElement = e.srcElement.offsetParent;
+  let clickedWidth = window.getComputedStyle(currentElement).flex;
+  elementWidth = parseInt(clickedWidth.substring(4));
+  
+  document.addEventListener('mousemove', mouseMoveHandler);
+  document.addEventListener('mouseup', mouseUpHandler);
+  
+};
+
+const mouseMoveHandler = function (e) {
+
+  //how far mouse moved
+  const dx = e.clientX - mouseCoord.x;
+
+  //adjust the element
+  currentElement.style.flex = `0 0 ${elementWidth + dx}px`;
+
+  blocklyDiv.style.width = blocklyContainer.offsetWidth +'px';
+  Blockly.svgResize(ws);
+
+};
+
+const mouseUpHandler = function() {
+  document.removeEventListener('mousemove', mouseMoveHandler);
+  document.removeEventListener('mouseup', mouseUpHandler);
+
+};
+
+leftPane.addEventListener('mousedown', mouseDownHandler);
+midPane.addEventListener('mousedown', mouseDownHandler);
+
+//============================== helper functions ===============================
 
 //for generating the JS object in the second column
 function generateJavascriptObj(json, interpreter, js) {

@@ -3,9 +3,27 @@
  * Added a second column to fit in more stuff
  */
 
+::-webkit-scrollbar {
+    background: rgb(244, 244, 244);
+    height: 8px;
+    width: 8px;
+
+} 
+::-webkit-scrollbar-thumb {
+    background: rgb(197, 197, 197);
+    border-radius: 10px;
+}
+ 
+ html {
+    scrollbar-color: rgb(197, 197, 197) rgb(244, 244, 244);
+    scrollbar-width: 8px;
+}
+
+
 body {
     margin: 0;
     max-width: 100vw;
+    
 }
 
 pre, code {
@@ -19,10 +37,19 @@ pre, code {
     height: 100vh;
 }
 
-#blocklyDiv {
+#blocklyContainer{
+    position: relative;
     flex-basis: 100%;
-    height: 100%;
-    min-width: 400px;
+    height: 100vh;
+    min-width: 200px;
+}
+
+#blocklyDiv {
+    position:absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 #preview {
@@ -32,11 +59,12 @@ pre, code {
 #outputPane {
     display: flex;
     flex-direction: column;
-    min-width: 300px;
+    min-width: 200px;
     flex: 0 0 300px;
     overflow: auto;
     margin: 0.5em;
 }
+
 
 #generatedCode {
     height: 30%;
@@ -44,6 +72,7 @@ pre, code {
 #interpreter {
     height: 25%;
     overflow: auto;
+
 }
 
 #javascript {
@@ -56,7 +85,7 @@ pre, code {
     display: flex;
     flex-direction: column;
     overflow: auto;
-    min-width: 400px;
+    min-width: 200px;
     flex: 0 0 500px;
     margin: 0.5em;
 }
@@ -67,6 +96,20 @@ pre, code {
     padding: 1em;
 }
 
+.resizable {
+    position: relative;
+}
+.resizer {
+    position:absolute;
+}
+.resizer-r {
+    cursor: col-resize;
+    height: 100%;
+    right: 0;
+    top: 0;
+    width: 10px;
+}
+
 hr {
     margin-left: 0;
     margin-right: 0;
@@ -75,4 +118,35 @@ hr {
 h4 {
     margin-top: 0.4em;
     margin-bottom: 0.4em;
+    font-family: 'Encode Sans', sans-serif;
+    font-weight: 500;
+    font-size: 18px;
+}   
+
+.btn {
+    background-color: rgb(233, 238, 243);
+    color: rgb(69, 68, 68);  
+    border: 1px solid rgb(182, 179, 179);
+    padding: 5px;
+    font-family: 'Encode Sans', sans-serif;
+    box-shadow: 0 2px 4px 0 rgba(0,0,0,0.1)
+
 }
+
+.btn-inline {
+    margin-left: 10px;
+}
+
+.btn:hover {
+    background-color: rgb(199, 203, 203);
+}
+
+.btn:active {
+    background-color: rgb(138, 138, 138);
+}
+
+label {
+    width: 96px;
+    font-size: 13px;
+}
+
