@@ -36,15 +36,15 @@ const jsObject = document.getElementById('jsObject').firstChild;
 //for resizing the screen
 const leftPane = document.getElementById('outputPane');
 const midPane = document.getElementById('columnTwo');
-const rightPane = blocklyDiv;
+
+//for loading multiple blocks
+const folderLoader = document.getElementById('loadWorkspaceFolder');
+const changeWorkspaces = document.getElementById('changeWorkspaces');
+const blockDropdown = document.getElementById("blockDropdown");
 
 let mouseCoord = {x: 0, y: 0};
 let elementWidth = 0;
 let currentElement = leftPane;
-
-let leftPaneWidth = 0;
-let midPaneWidth = 0;
-let rightPaneWidth = 0;
 
  //puts one block creator down by default
 const defaultWorkspace = `<xml xmlns="https://developers.google.com/blockly/xml">
@@ -74,6 +74,9 @@ var jsonCode = "";
 var jsCode = "";
 var interpreterCode = "";
 
+var loadedBlocks = [];
+var showChangeWorkspaces = false;
+
 //set all of the HTML buttons' functions
 window.onload = function() {
   var btn = document.getElementById("generatedCodeBtn");
@@ -94,6 +97,19 @@ window.onload = function() {
   btn = document.getElementById("saveButton");
   btn.onclick = saveWorkspace;
 
+  btn = document.getElementById("blockSelectorSubmit");
+  btn.onclick = submitBlock;
+
+  loadedBlocks = JSON.parse(sessionStorage.getItem("loadedBlocks"));
+
+  if(loadedBlocks != null && loadedBlocks.length > 0)
+  {
+    changeWorkspaces.style.display = "block";
+    setBlockDropdown();
+  }
+  else  
+    changeWorkspaces.style.display = "none";
+
 }
 
 // This function resets the code and output divs, shows the
@@ -101,6 +117,7 @@ window.onload = function() {
 // In a real application, you probably shouldn't use `eval`.
 const runCode = () => {
 
+  
   //creates the block factory block when first starting
   //also, keeps it from being deleted
   if(ws.getAllBlocks(false).length < 1)
@@ -229,7 +246,11 @@ fileSelector.addEventListener('change', (event) => {
 
   //get the files that were loaded
   const fileList = event.target.files;
+  loadedBlocks = []; //reset this so the page doesn't think you've loaded multiple anymore
+  sessionStorage.setItem("loadedBlocks", JSON.stringify(loadedBlocks));
+  showChangeWorkspaces = false;
   
+
   //reads the content of the file the user loaded
   var reader = new FileReader();
   reader.readAsText(fileList[0], "UTF-8");
@@ -245,6 +266,26 @@ fileSelector.addEventListener('change', (event) => {
 
     //reload the page to update the stubborn HTML elements that don't update automatically
     location.reload();
+  }
+
+});
+
+//for loading several blocks from a folder (puts them into the dropdown selector)
+folderLoader.addEventListener('change', (event) => {
+
+  showChangeWorkspaces = true;
+  changeWorkspaces.style.display = "block";
+  let files = event.target.files;
+  loadedBlocks = [];
+  blockDropdown.innerHTML = "";
+
+  for(let i = 0; i < files.length; i++)
+  {
+    //makes sure only xml files are selected
+    if(files[i].type === "text/xml")
+    {
+      setupReader(files[i]);
+    }
   }
 
 });
@@ -334,8 +375,64 @@ function saveWorkspace() {
   link.href = URL.createObjectURL(blob);
 }
 
+//when hitting "submit" on the select block section
+function submitBlock() {
+
+  //clear the workspace and replace it with the loaded workspace
+  ws.clear();
+  var newXml = Blockly.Xml.textToDom(blockDropdown[blockDropdown.selectedIndex].value);
+  Blockly.Xml.domToWorkspace(newXml, ws);
+
+  //save the array in session storage in prep for upcoming reload
+  sessionStorage.setItem("loadedBlocks", JSON.stringify(loadedBlocks));
+  sessionStorage.setItem("blockDropdownSelectedIndex", JSON.stringify(blockDropdown.selectedIndex));
+
+  //reload the page to update the stubborn HTML elements that don't update automatically
+  location.reload();
+  
+}
+
 //for the buttons that copy the code in the divs
 function copyText(id){
   let text = document.getElementById(id).innerText;
   navigator.clipboard.writeText(text);
+
 }
+
+//read each individual file and push it into loadedBlocks & the actual HTML
+function setupReader(file) {
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+
+    //create the HTML element, then put it into the dropdown list
+    var opt = document.createElement('option');
+    opt.value = e.target.result;
+    opt.innerHTML = file.name.split(".")[0];
+    blockDropdown.appendChild(opt);
+
+    let newItem = {name: opt.innerHTML, XML: e.target.result};
+    //array of all the stuff
+    loadedBlocks.push(newItem);
+  }
+
+  reader.readAsText(file, "UTF-8");
+  
+}
+
+//called in window.onload; restores the HTML loaded elements on a refresh
+function setBlockDropdown() {
+
+    //create the HTML element, then put it into the dropdown list
+    loadedBlocks.forEach((block) => {
+      var opt = document.createElement('option');
+      opt.value = block.XML;
+      opt.innerHTML = block.name;
+      blockDropdown.appendChild(opt);
+    });
+
+    blockDropdown.selectedIndex = sessionStorage.getItem("blockDropdownSelectedIndex");
+
+
+}
+
