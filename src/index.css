@@ -54,6 +54,7 @@ pre, code {
 
 #preview {
     height: 30%;
+    
 }
 
 #outputPane {
@@ -62,7 +63,7 @@ pre, code {
     min-width: 200px;
     flex: 0 0 300px;
     overflow: auto;
-    margin: 0.5em;
+
 }
 
 
@@ -87,7 +88,9 @@ pre, code {
     overflow: auto;
     min-width: 200px;
     flex: 0 0 500px;
-    margin: 0.5em;
+    margin-left: 0;
+    margin-right: 0;
+    
 }
 
 #changeWorkspaces {
@@ -108,9 +111,8 @@ pre, code {
 }
 
 .box {
-    outline-style: solid;
-    outline-color: lightgray;
-    padding: 1em;
+    padding: 1.5em;
+    margin: 0;
 }
 
 .resizable {
@@ -118,6 +120,7 @@ pre, code {
 }
 .resizer {
     position:absolute;
+    background-color: rgb(173, 170, 213);
 }
 .resizer-r {
     cursor: col-resize;
@@ -125,6 +128,18 @@ pre, code {
     right: 0;
     top: 0;
     width: 10px;
+}
+
+#threeDots {
+    color:white;
+    font-size:24px;
+    text-align:center;
+    margin: 0;
+    padding:0;
+    position:absolute;
+    top:50%;
+    left:1px;
+    user-select:none;
 }
 
 hr {

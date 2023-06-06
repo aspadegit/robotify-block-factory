@@ -299,6 +299,9 @@ const mouseDownHandler = function (e) {
   mouseCoord.y = e.clientY;
 
   currentElement = e.srcElement.offsetParent;
+  if(e.srcElement.id === "threeDots")
+    currentElement = currentElement.offsetParent;
+
   let clickedWidth = window.getComputedStyle(currentElement).flex;
   elementWidth = parseInt(clickedWidth.substring(4));
   
